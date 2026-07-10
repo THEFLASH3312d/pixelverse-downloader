@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Descarga videos de YouTube y otras plataformas fácilmente.">
+  <title>PixelVerse Downloader — Descarga Videos</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⬇️</text></svg>">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Animated Background -->
+  <div class="bg-animation">
+    <div class="bg-orb"></div>
+    <div class="bg-orb"></div>
+    <div class="bg-orb"></div>
+  </div>
+
+  <!-- Main App -->
+  <div class="app">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <div class="logo-icon">⬇️</div>
+        <div>
+          <h1 class="logo-text">PixelVerse <span class="logo-accent">Downloader</span></h1>
+          <p class="logo-sub">Descarga videos fácilmente</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- URL Input Section -->
+    <section class="input-section fade-in">
+      <div class="input-card">
+        <h2 class="input-title">Pega el enlace del video</h2>
+        <p class="input-description">YouTube, Vimeo, Twitter, TikTok, Instagram y +1000 sitios soportados</p>
+        <div class="url-input-row">
+          <div class="url-input-wrapper">
+            <span class="url-input-icon">🔗</span>
+            <input 
+              type="text" 
+              id="videoUrl" 
+              placeholder="https://www.youtube.com/watch?v=..." 
+              autocomplete="off"
+              spellcheck="false"
+            >
+            <button class="clear-btn" id="clearBtn" onclick="clearInput()" title="Limpiar">✕</button>
+          </div>
+          <button class="btn btn-primary btn-fetch" id="fetchBtn" onclick="fetchVideoInfo()">
+            <span class="btn-icon">🔍</span>
+            <span class="btn-text">Buscar</span>
+          </button>
+        </div>
+        <div class="supported-sites">
+          <span class="site-badge">YouTube</span>
+          <span class="site-badge">Vimeo</span>
+          <span class="site-badge">Twitter/X</span>
+          <span class="site-badge">TikTok</span>
+          <span class="site-badge">Instagram</span>
+          <span class="site-badge">Facebook</span>
+          <span class="site-badge">+1000</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Loading State -->
+    <section class="loading-section" id="loadingSection">
+      <div class="loading-card">
+        <div class="spinner"></div>
+        <p class="loading-text">Obteniendo información del video...</p>
+      </div>
+    </section>
+
+    <!-- Error State -->
+    <section class="error-section" id="errorSection">
+      <div class="error-card">
+        <div class="error-icon">⚠️</div>
+        <h3>Error</h3>
+        <p id="errorMessage">No se pudo obtener la información del video.</p>
+        <button class="btn btn-secondary" onclick="hideError()">Intentar de nuevo</button>
+      </div>
+    </section>
+
+    <!-- Video Info + Download Section -->
+    <section class="result-section" id="resultSection">
+      <div class="result-card">
+        <!-- Video Preview -->
+        <div class="video-preview">
+          <div class="thumbnail-wrapper">
+            <img id="videoThumbnail" src="" alt="Thumbnail" class="thumbnail">
+            <div class="duration-badge" id="videoDuration">0:00</div>
+          </div>
+          <div class="video-meta">
+            <h3 class="video-title" id="videoTitle">Título del video</h3>
+            <p class="video-uploader" id="videoUploader">Canal</p>
+            <div class="video-stats">
+              <span class="video-stat" id="videoViews">
+                <span class="stat-icon">👁️</span> 0 vistas
+              </span>
+              <span class="video-stat" id="videoOriginalUrl">
+                <span class="stat-icon">🔗</span>
+                <a href="#" target="_blank" id="videoLink">Ver original</a>
+              </span>
+            </div>
+            <p class="video-desc" id="videoDescription"></p>
+          </div>
+        </div>
+
+        <!-- Quality Selection -->
+        <div class="quality-section">
+          <h4 class="quality-title">Selecciona la calidad</h4>
+          <div class="quality-options">
+            <label class="quality-option selected" data-quality="best">
+              <input type="radio" name="quality" value="best" checked>
+              <div class="quality-card">
+                <span class="quality-icon">🎬</span>
+                <span class="quality-label">Mejor calidad</span>
+                <span class="quality-desc">Video + Audio (MP4)</span>
+              </div>
+            </label>
+            <label class="quality-option" data-quality="720">
+              <input type="radio" name="quality" value="720">
+              <div class="quality-card">
+                <span class="quality-icon">📺</span>
+                <span class="quality-label">720p HD</span>
+                <span class="quality-desc">Resolución media</span>
+              </div>
+            </label>
+            <label class="quality-option" data-quality="480">
+              <input type="radio" name="quality" value="480">
+              <div class="quality-card">
+                <span class="quality-icon">📱</span>
+                <span class="quality-label">480p</span>
+                <span class="quality-desc">Archivo pequeño</span>
+              </div>
+            </label>
+            <label class="quality-option" data-quality="360">
+              <input type="radio" name="quality" value="360">
+              <div class="quality-card">
+                <span class="quality-icon">📟</span>
+                <span class="quality-label">360p</span>
+                <span class="quality-desc">Mínima calidad</span>
+              </div>
+            </label>
+            <label class="quality-option" data-quality="audio">
+              <input type="radio" name="quality" value="audio">
+              <div class="quality-card">
+                <span class="quality-icon">🎵</span>
+                <span class="quality-label">Solo Audio</span>
+                <span class="quality-desc">MP3</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Download Button -->
+        <div class="download-section">
+          <button class="btn btn-download" id="downloadBtn" onclick="startDownload()">
+            <span class="btn-icon">⬇️</span>
+            <span class="btn-text">Descargar Video</span>
+          </button>
+        </div>
+
+        <!-- Download Progress -->
+        <div class="progress-section" id="progressSection">
+          <div class="progress-info">
+            <span class="progress-label" id="progressLabel">Descargando...</span>
+            <span class="progress-percent" id="progressPercent">0%</span>
+          </div>
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" id="progressFill"></div>
+          </div>
+        </div>
+
+        <!-- Download Complete -->
+        <div class="complete-section" id="completeSection">
+          <div class="complete-card">
+            <div class="complete-icon">✅</div>
+            <h4>¡Descarga completada!</h4>
+            <p id="completedFilename">archivo.mp4</p>
+            <a class="btn btn-primary" id="downloadLink" href="#" download>
+              <span class="btn-icon">💾</span>
+              <span class="btn-text">Guardar Archivo</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Downloaded Files History -->
+    <section class="history-section fade-in" id="historySection">
+      <div class="history-card">
+        <div class="history-header">
+          <h3>📂 Archivos Descargados</h3>
+          <button class="btn btn-secondary btn-sm" onclick="refreshHistory()">🔄 Actualizar</button>
+        </div>
+        <div class="history-list" id="historyList">
+          <p class="history-empty">No hay descargas aún.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>🔮 PixelVerse Downloader — Powered by yt-dlp · Uso personal</p>
+    </footer>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
