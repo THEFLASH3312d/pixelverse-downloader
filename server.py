@@ -16,10 +16,24 @@ import mimetypes
 app = Flask(__name__, static_folder='.', static_url_path='')
 
 DOWNLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "downloads")
+COOKIES_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cookies.txt")
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
 # Track active downloads
 active_downloads = {}
+
+# Common yt-dlp args to bypass YouTube bot detection
+def get_ytdlp_base_args():
+    args = [
+        sys.executable, "-m", "yt_dlp",
+        "--extractor-args", "youtube:player_client=web_creator,tv_embedded,default",
+        "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+        "--no-check-certificates",
+    ]
+    # Use cookies file if it exists
+    if os.path.exists(COOKIES_FILE):
+        args += ["--cookies", COOKIES_FILE]
+    return args
 
 
 # ── Static Files ──
@@ -43,10 +57,12 @@ def api_info():
         return jsonify({"error": "URL requerida"}), 400
 
     try:
+        cmd = get_ytdlp_base_args() + [
+            "--dump-json", "--no-download", "--no-warnings", url
+        ]
         result = subprocess.run(
-            [sys.executable, "-m", "yt_dlp",
-             "--dump-json", "--no-download", "--no-warnings", url],
-            capture_output=True, text=True, timeout=30,
+            cmd,
+            capture_output=True, text=True, timeout=45,
             encoding="utf-8", errors="replace"
         )
 
@@ -157,8 +173,7 @@ def download_worker(download_id, url, quality):
 
         output_template = os.path.join(DOWNLOAD_DIR, "%(title)s.%(ext)s")
 
-        cmd = [
-            sys.executable, "-m", "yt_dlp",
+        cmd = get_ytdlp_base_args() + [
             "-f", format_sel,
             "-o", output_template,
             "--no-warnings", "--newline",
