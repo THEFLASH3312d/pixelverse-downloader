@@ -36,8 +36,6 @@ if env_cookies:
 def get_ytdlp_base_args():
     args = [
         sys.executable, "-m", "yt_dlp",
-        "--extractor-args", "youtube:player_client=default",
-        "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
         "--no-check-certificates",
         "--no-playlist",
     ]
