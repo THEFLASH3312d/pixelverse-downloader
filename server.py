@@ -96,7 +96,7 @@ def api_info():
 
     try:
         cmd = get_ytdlp_base_args() + [
-            "-f", "b",
+            "-f", "bv*+ba/b",
             "--dump-json", "--no-download", "--no-warnings", url
         ]
         result = subprocess.run(
@@ -109,53 +109,57 @@ def api_info():
             error_msg = result.stderr.strip() if result.stderr else "No se pudo obtener info del video"
             return jsonify({"error": error_msg}), 400
 
-        info = json.loads(result.stdout)
+        try:
+            info = json.loads(result.stdout)
+            
+            # Formats logic
+            formats = []
+            seen = set()
+            for f in info.get("formats", []):
+                ext = f.get("ext", "?")
+                height = f.get("height")
+                vcodec = f.get("vcodec", "none")
+                acodec = f.get("acodec", "none")
+                filesize = f.get("filesize") or f.get("filesize_approx")
+                format_id = f.get("format_id", "")
 
-        # Extract formats
-        formats = []
-        seen = set()
-        for f in info.get("formats", []):
-            ext = f.get("ext", "?")
-            height = f.get("height")
-            vcodec = f.get("vcodec", "none")
-            acodec = f.get("acodec", "none")
-            filesize = f.get("filesize") or f.get("filesize_approx")
-            format_id = f.get("format_id", "")
+                if vcodec == "none" and acodec == "none":
+                    continue
 
-            if vcodec == "none" and acodec == "none":
-                continue
+                if height and vcodec != "none":
+                    label = f"{height}p {ext}"
+                elif acodec != "none" and vcodec == "none":
+                    label = f"Audio {ext}"
+                else:
+                    label = f"{ext}"
 
-            if height and vcodec != "none":
-                label = f"{height}p {ext}"
-            elif acodec != "none" and vcodec == "none":
-                label = f"Audio {ext}"
-            else:
-                label = f"{ext}"
+                if label not in seen:
+                    seen.add(label)
+                    formats.append({
+                        "format_id": format_id,
+                        "label": label,
+                        "ext": ext,
+                        "height": height,
+                        "filesize": filesize,
+                        "has_video": vcodec != "none",
+                        "has_audio": acodec != "none",
+                    })
 
-            if label not in seen:
-                seen.add(label)
-                formats.append({
-                    "format_id": format_id,
-                    "label": label,
-                    "ext": ext,
-                    "height": height,
-                    "filesize": filesize,
-                    "has_video": vcodec != "none",
-                    "has_audio": acodec != "none",
-                })
+            formats.sort(key=lambda x: x.get("height") or 0, reverse=True)
 
-        formats.sort(key=lambda x: x.get("height") or 0, reverse=True)
-
-        return jsonify({
-            "title": info.get("title", "Sin titulo"),
-            "thumbnail": info.get("thumbnail", ""),
-            "duration": info.get("duration", 0),
-            "uploader": info.get("uploader", "Desconocido"),
-            "view_count": info.get("view_count", 0),
-            "description": (info.get("description", "") or "")[:300],
-            "webpage_url": info.get("webpage_url", url),
-            "formats": formats[:15],
-        })
+            data = {
+                "title": info.get("title", "Video"),
+                "thumbnail": info.get("thumbnail", ""),
+                "duration": info.get("duration", 0),
+                "uploader": info.get("uploader", ""),
+                "description": info.get("description", "")[:200] + "...",
+                "view_count": info.get("view_count", 0),
+                "webpage_url": info.get("webpage_url", url),
+                "formats": formats[:15]
+            }
+            return jsonify(data)
+        except json.JSONDecodeError:
+            return jsonify({"error": "Error al procesar la informacion del video"}), 500
 
     except subprocess.TimeoutExpired:
         return jsonify({"error": "Timeout: el video tardo demasiado en responder"}), 408
@@ -195,19 +199,19 @@ def api_download():
 def download_worker(download_id, url, quality):
     try:
         if quality == "audio":
-            format_sel = "bestaudio/best"
+            format_sel = "ba/b"
             extra = ["--extract-audio", "--audio-format", "mp3"]
         elif quality == "720":
-            format_sel = "bestvideo[height<=720]+bestaudio/best[height<=720]/best"
+            format_sel = "bv*[height<=720]+ba/b[height<=720]/b"
             extra = []
         elif quality == "480":
-            format_sel = "bestvideo[height<=480]+bestaudio/best[height<=480]/best"
+            format_sel = "bv*[height<=480]+ba/b[height<=480]/b"
             extra = []
         elif quality == "360":
-            format_sel = "bestvideo[height<=360]+bestaudio/best[height<=360]/best"
+            format_sel = "bv*[height<=360]+ba/b[height<=360]/b"
             extra = []
         else:
-            format_sel = "bestvideo+bestaudio/best"
+            format_sel = "bv*+ba/b"
             extra = []
 
         output_template = os.path.join(DOWNLOAD_DIR, "%(title)s.%(ext)s")
