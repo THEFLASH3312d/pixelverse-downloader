@@ -48,6 +48,35 @@ def static_files(filename):
     return send_from_directory('.', filename)
 
 
+# ── API: Upload Cookies ──
+
+@app.route('/api/cookies', methods=['POST'])
+def api_upload_cookies():
+    """Upload a cookies.txt file for YouTube authentication."""
+    if 'file' not in request.files:
+        # Try raw text body
+        data = request.get_json(silent=True)
+        if data and data.get('cookies_text'):
+            with open(COOKIES_FILE, 'w', encoding='utf-8') as f:
+                f.write(data['cookies_text'])
+            return jsonify({"success": True, "message": "Cookies guardadas correctamente"})
+        return jsonify({"error": "No se recibio archivo"}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "Archivo vacio"}), 400
+
+    file.save(COOKIES_FILE)
+    return jsonify({"success": True, "message": "Cookies guardadas correctamente"})
+
+
+@app.route('/api/cookies/status')
+def api_cookies_status():
+    """Check if cookies file exists."""
+    exists = os.path.exists(COOKIES_FILE) and os.path.getsize(COOKIES_FILE) > 0
+    return jsonify({"has_cookies": exists})
+
+
 # ── API: Video Info ──
 
 @app.route('/api/info')

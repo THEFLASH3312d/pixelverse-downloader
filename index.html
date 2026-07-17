@@ -66,6 +66,41 @@
       </div>
     </section>
 
+    <!-- Cookies Section -->
+    <section class="cookies-section fade-in" id="cookiesSection">
+      <div class="cookies-card">
+        <div class="cookies-header" onclick="toggleCookies()">
+          <div class="cookies-title-row">
+            <span class="cookies-icon">🍪</span>
+            <div>
+              <h3>Cookies de YouTube <span class="cookies-status" id="cookiesStatus">Sin configurar</span></h3>
+              <p>Necesarias para descargar videos de YouTube</p>
+            </div>
+          </div>
+          <span class="cookies-toggle" id="cookiesToggle">▼</span>
+        </div>
+        <div class="cookies-body" id="cookiesBody">
+          <div class="cookies-instructions">
+            <h4>Pasos para obtener tus cookies:</h4>
+            <ol>
+              <li>Instala la extension <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc" target="_blank"><strong>Get cookies.txt LOCALLY</strong></a> en Chrome</li>
+              <li>Ve a <a href="https://www.youtube.com" target="_blank">youtube.com</a> y asegurate de tener sesion iniciada</li>
+              <li>Haz clic en la extension y selecciona <strong>"Export"</strong></li>
+              <li>Sube el archivo <code>cookies.txt</code> aqui abajo</li>
+            </ol>
+          </div>
+          <div class="cookies-upload">
+            <div class="cookies-upload-zone" id="cookiesUploadZone">
+              <span class="cookies-upload-icon">📄</span>
+              <p>Arrastra tu <strong>cookies.txt</strong> o <span class="browse-btn">haz clic para explorar</span></p>
+              <input type="file" id="cookiesFileInput" accept=".txt">
+            </div>
+            <p class="cookies-result" id="cookiesResult"></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Loading State -->
     <section class="loading-section" id="loadingSection">
       <div class="loading-card">

@@ -244,7 +244,80 @@ document.getElementById('videoUrl').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') fetchVideoInfo();
 });
 
-// ── Init: Load History ──
-refreshHistory();
+// ══════════════════════════════════════
+// ── Cookies Management ──
+// ══════════════════════════════════════
 
-console.log('⬇️ PixelVerse Downloader loaded');
+function toggleCookies() {
+  const body = document.getElementById('cookiesBody');
+  const toggle = document.getElementById('cookiesToggle');
+  body.classList.toggle('open');
+  toggle.textContent = body.classList.contains('open') ? '▲' : '▼';
+}
+
+async function checkCookiesStatus() {
+  try {
+    const res = await fetch('/api/cookies/status');
+    const data = await res.json();
+    const status = document.getElementById('cookiesStatus');
+    if (data.has_cookies) {
+      status.textContent = '✅ Activas';
+      status.className = 'cookies-status active';
+    } else {
+      status.textContent = '⚠️ Sin configurar';
+      status.className = 'cookies-status not-set';
+      // Auto-open if no cookies
+      document.getElementById('cookiesBody').classList.add('open');
+      document.getElementById('cookiesToggle').textContent = '▲';
+    }
+  } catch (e) { /* silent */ }
+}
+
+async function uploadCookies(file) {
+  const result = document.getElementById('cookiesResult');
+  result.textContent = 'Subiendo cookies...';
+  result.className = 'cookies-result';
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const res = await fetch('/api/cookies', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (data.success) {
+      result.textContent = '✅ Cookies guardadas correctamente. ¡Ya puedes descargar videos de YouTube!';
+      result.className = 'cookies-result success';
+      checkCookiesStatus();
+    } else {
+      result.textContent = '❌ Error: ' + (data.error || 'Fallo al guardar');
+      result.className = 'cookies-result error';
+    }
+  } catch (e) {
+    result.textContent = '❌ Error de conexion';
+    result.className = 'cookies-result error';
+  }
+}
+
+// Cookie upload zone events
+(function initCookieUpload() {
+  const zone = document.getElementById('cookiesUploadZone');
+  const input = document.getElementById('cookiesFileInput');
+  if (!zone || !input) return;
+
+  zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    if (e.dataTransfer.files.length > 0) uploadCookies(e.dataTransfer.files[0]);
+  });
+  input.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) uploadCookies(e.target.files[0]);
+  });
+})();
+
+// ── Init ──
+refreshHistory();
+checkCookiesStatus();
+
+console.log('PixelVerse Downloader loaded');
