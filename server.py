@@ -98,6 +98,7 @@ def api_info():
 
     try:
         cmd = get_ytdlp_base_args() + [
+            "-f", "b",
             "--dump-json", "--no-download", "--no-warnings", url
         ]
         result = subprocess.run(
