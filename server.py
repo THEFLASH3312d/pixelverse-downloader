@@ -22,6 +22,16 @@ os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 # Track active downloads
 active_downloads = {}
 
+# Check for cookies in environment variable (Render persistence)
+env_cookies = os.environ.get('YOUTUBE_COOKIES')
+if env_cookies:
+    try:
+        with open(COOKIES_FILE, 'w', encoding='utf-8') as f:
+            f.write(env_cookies)
+        print("Cookies cargadas desde variable de entorno.")
+    except Exception as e:
+        print("Error guardando cookies de entorno:", e)
+
 # Common yt-dlp args to bypass YouTube bot detection
 def get_ytdlp_base_args():
     args = [
