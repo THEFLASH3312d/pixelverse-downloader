@@ -26,9 +26,10 @@ active_downloads = {}
 def get_ytdlp_base_args():
     args = [
         sys.executable, "-m", "yt_dlp",
-        "--extractor-args", "youtube:player_client=web_creator,tv_embedded,default",
+        "--extractor-args", "youtube:player_client=default",
         "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
         "--no-check-certificates",
+        "--no-playlist",
     ]
     # Use cookies file if it exists
     if os.path.exists(COOKIES_FILE):
@@ -188,16 +189,16 @@ def download_worker(download_id, url, quality):
             format_sel = "bestaudio/best"
             extra = ["--extract-audio", "--audio-format", "mp3"]
         elif quality == "720":
-            format_sel = "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best"
+            format_sel = "bestvideo[height<=720]+bestaudio/best[height<=720]/best"
             extra = []
         elif quality == "480":
-            format_sel = "bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best"
+            format_sel = "bestvideo[height<=480]+bestaudio/best[height<=480]/best"
             extra = []
         elif quality == "360":
-            format_sel = "bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]/best"
+            format_sel = "bestvideo[height<=360]+bestaudio/best[height<=360]/best"
             extra = []
         else:
-            format_sel = "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"
+            format_sel = "bestvideo+bestaudio/best"
             extra = []
 
         output_template = os.path.join(DOWNLOAD_DIR, "%(title)s.%(ext)s")
